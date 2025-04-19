@@ -4,6 +4,7 @@ import data from "../data.json";
 import { Category } from "@/types";
 import { Categories } from "@/types";
 import { LIFE_FORCE } from "@/utils/constants";
+import useSound from "use-sound";
 
 export const usePlayGame = () => {
   const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
@@ -11,6 +12,14 @@ export const usePlayGame = () => {
   const [open, setOpen] = React.useState(false);
   const [openType, setOpenType] = React.useState<"paused" | "loose" | "win">();
   const params = useParams();
+
+  const [playWinSound] = useSound("/sounds/win.wav", {
+    volume: 0.5,
+  });
+
+  const [playLooseSound] = useSound("/sounds/loose.wav", {
+    volume: 0.5,
+  });
 
   const category = React.useMemo(
     () => decodeURI(params.category as string) as Category,
@@ -84,14 +93,22 @@ export const usePlayGame = () => {
   React.useEffect(() => {
     const loose = lifeForce === 0;
     const hasWon = categoryPickedAtRandom?.name
+      ?.replaceAll(" ", "")
       ?.split("")
       ?.every((letter) => selectedLetters?.includes(letter?.toUpperCase()));
 
     if (loose) {
       action("loose");
+      setTimeout(() => {
+        playLooseSound();
+      }, 2000);
     } else if (hasWon) {
       action("win");
+      setTimeout(() => {
+        playWinSound();
+      }, 2000);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lifeForce, categoryPickedAtRandom, selectedLetters, initialData]);
 
   return {
